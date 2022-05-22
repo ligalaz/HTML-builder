@@ -1,40 +1,40 @@
 const path = require('path');
 const fs = require('fs');
-const { access, readdir, copyFile, mkdir, rm } = require('fs/promises');
+const {
+  access,
+  readdir,
+  readFile,
+  copyFile,
+  mkdir,
+  rm,
+} = require('fs/promises');
 
 const pathStylesDir = path.join(__dirname, 'styles');
 const pathCurrentDir = path.join(__dirname, 'assets');
 const pathHtmlDir = path.join(__dirname, 'components');
 const pathNewDir = path.join(__dirname, 'project-dist');
-const readStream = fs.createReadStream(
-  path.join(__dirname, 'template.html'),
-  'utf-8'
-);
 
-/* HTML parse */
-
-let data = '';
-
-readStream.on('data', (chunk) => {
-  data += chunk;
-});
-readStream.on('end', () => {
-  console.log('End', data);
-});
-
-/* Copy files */
+/* Project */
 
 (async function checkDir(check) {
   try {
     await access(check);
-    await rm(check, { recursive: true });
-    deepRead(pathCurrentDir, pathNewDir);
-    cssBundler();
+    await rm(pathNewDir, { recursive: true });
+    makeBundle();
   } catch (err) {
-    deepRead(pathCurrentDir, pathNewDir);
-    cssBundler();
+    makeBundle();
   }
-})(pathNewDir);
+})(path.join(pathNewDir, 'assets'));
+
+function makeBundle() {
+  createDir(pathNewDir);
+  deepRead(pathCurrentDir, path.join(pathNewDir, 'assets'));
+  htmlParse();
+  cssBundler();
+  setTimeout(() => {
+    console.log('Сборка прошла успешно');
+  }, 500);
+}
 
 async function createDir(outputDir) {
   try {
@@ -74,6 +74,40 @@ async function deepRead(pathInputName, pathOutputName) {
   }
 }
 
+/* HTML bundle */
+
+async function htmlParse() {
+  try {
+    const htmlFiles = await readdir(pathHtmlDir, { withFileTypes: true });
+    let templateData = await readFile(
+      path.join(__dirname, 'template.html'),
+      'utf-8'
+    );
+    const htmlWriteStream = fs.createWriteStream(
+      path.join(pathNewDir, 'index.html')
+    );
+
+    for (let html of htmlFiles) {
+      let htmlCurrentPath = path.parse(path.join(pathHtmlDir, html.name));
+      if (html.isFile() && /\.html$/.test(htmlCurrentPath.base)) {
+        const htmlFragment = await readFile(
+          path.join(pathHtmlDir, html.name),
+          'utf-8'
+        );
+
+        templateData = templateData.replace(
+          new RegExp(`{{${htmlCurrentPath.name}}}`, 'g'),
+          htmlFragment
+        );
+      }
+    }
+
+    htmlWriteStream.write(templateData);
+  } catch (err) {
+    console.log('Сбой сборки шаблона', err.message);
+  }
+}
+
 /* CSS bundle */
 
 async function cssBundler() {
@@ -85,7 +119,6 @@ async function cssBundler() {
 
     for (let file of files) {
       if (file.isFile() && /\.css$/.test(file.name)) {
-        console.log(file.name);
         fs.createReadStream(path.join(pathStylesDir, file.name)).pipe(
           writeStream
         );
