@@ -31,9 +31,8 @@ function makeBundle() {
   deepRead(pathCurrentDir, path.join(pathNewDir, 'assets'));
   htmlParse();
   cssBundler();
-  setTimeout(() => {
-    console.log('Сборка прошла успешно');
-  }, 500);
+
+  console.log('Сборка прошла успешно');
 }
 
 async function createDir(outputDir) {
@@ -120,7 +119,8 @@ async function cssBundler() {
     for (let file of files) {
       if (file.isFile() && /\.css$/.test(file.name)) {
         fs.createReadStream(path.join(pathStylesDir, file.name)).pipe(
-          writeStream
+          writeStream,
+          { end: false }
         );
       }
     }

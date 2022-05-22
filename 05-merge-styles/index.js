@@ -13,7 +13,8 @@ const writeStream = fs.createWriteStream(
     for (let file of files) {
       if (file.isFile() && /\.css$/.test(file.name)) {
         fs.createReadStream(path.join(pathCurrentDir, file.name)).pipe(
-          writeStream
+          writeStream,
+          { end: false }
         );
       } else null;
     }
