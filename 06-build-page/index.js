@@ -8,7 +8,6 @@ const {
   mkdir,
   rm,
 } = require('fs/promises');
-const { reverse } = require('dns');
 
 const pathStylesDir = path.join(__dirname, 'styles');
 const pathCurrentDir = path.join(__dirname, 'assets');
