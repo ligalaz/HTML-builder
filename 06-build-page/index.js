@@ -8,6 +8,7 @@ const {
   mkdir,
   rm,
 } = require('fs/promises');
+const { reverse } = require('dns');
 
 const pathStylesDir = path.join(__dirname, 'styles');
 const pathCurrentDir = path.join(__dirname, 'assets');
@@ -115,6 +116,7 @@ async function cssBundler() {
       path.join(__dirname, 'project-dist', 'style.css')
     );
     let files = await readdir(pathStylesDir, { withFileTypes: true });
+    files = files.reverse();
 
     for (let file of files) {
       if (file.isFile() && /\.css$/.test(file.name)) {
