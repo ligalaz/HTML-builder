@@ -14,7 +14,7 @@ const { readdir } = require('fs/promises');
           console.log(
             `${path.parse(file.name).name} - ${path
               .parse(file.name)
-              .ext.replace(/^\./g, '')} - ${(stats.size / 1024).toFixed(1)}kb`
+              .ext.replace(/^\./g, '')} - ${(stats.size / 1024).toFixed(3)}kb`
           );
         });
       }
